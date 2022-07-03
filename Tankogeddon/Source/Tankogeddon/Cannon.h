@@ -21,6 +21,8 @@ public:
 	void FireSpecial();
 	void Reload();
 
+	void SetupAmmo(int32 BoxAmmo);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class UStaticMeshComponent* CannonMesh;
@@ -34,11 +36,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	float ReloadTime = 1.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	int Ammo = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	int32 Ammo = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	int32 BurstSize = 3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	float BurstInterval = 0.1f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	float FireRange = 1000.0f;
 
 	FTimerHandle ReloadTimer;
+	FTimerHandle BurstTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+	TSubclassOf<class AProjectile> ProjectileClass;
 
 private:
 	bool bCanFire = true;
+
+	int32 CurrentBurts = 0;
+
+	void Burst();
 };

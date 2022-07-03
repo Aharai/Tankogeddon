@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Components/ArrowComponent.h"
 #include "TankPawn.generated.h"
 
 class UStaticMeshComponent;
@@ -28,28 +29,38 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+
+	void WeaponChange();
+
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		UStaticMeshComponent* BodyMesh;
+	UStaticMeshComponent* BodyMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		UStaticMeshComponent* TurretMesh;
+	UStaticMeshComponent* TurretMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		class USpringArmComponent* SpringArm;
+	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		class UCameraComponent* Camera;
+	class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UArrowComponent* CannonSetupPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turret | Component")
 	TSubclassOf<ACannon> CannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turret | Component")
+	TSubclassOf<ACannon> SecondCannonClass;
 
 	UPROPERTY()
 	ACannon* Cannon;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
-	float MoveSpeed = 100.0f;
+	float MoveSpeed = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float RotationSpeed = 100.0f;
@@ -62,8 +73,6 @@ protected:
 
 	UPROPERTY()
 	class ATankController* TankController;
-
-	void SetupCannon();
 	
 private:
 	float TargetForwardAxisValue = 0.0f;

@@ -20,6 +20,10 @@ ATankPawn::ATankPawn()
 	TurretMesh = CreateAbstractDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
 	TurretMesh->SetupAttachment(BodyMesh);
 
+	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("Cannon setup point"));
+	CannonSetupPoint->AttachToComponent(TurretMesh, FAttachmentTransformRules::KeepRelativeTransform);
+
+
 	SpringArm = CreateAbstractDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(BodyMesh);
 	SpringArm->bDoCollisionTest = false;
@@ -75,7 +79,7 @@ void ATankPawn::Tick(float DeltaSeconds)
 	CurrentRotateAxisValue = FMath::Lerp(CurrentRotateAxisValue, RotateRightAxisValue, InterpolationKey);
 	float YawRotation = RotationSpeed * CurrentRotateAxisValue * DeltaSeconds;
 
-	UE_LOG(LogTemp, Warning, TEXT("CurrentRotateAxis Value: %f, RotaterRightAxisValue: %f"), CurrentRotateAxisValue, RotateRightAxisValue);
+	//UE_LOG(LogTemp, Warning, TEXT("CurrentRotateAxis Value: %f, RotaterRightAxisValue: %f"), CurrentRotateAxisValue, RotateRightAxisValue);
 
 	FRotator CurrentRotation = GetActorRotation();
 
@@ -104,12 +108,12 @@ void ATankPawn::BeginPlay()
 
 	TankController = Cast<ATankController>(GetController());
 
-	SetupCannon();
+	SetupCannon(CannonClass);
 }
 
-void ATankPawn::SetupCannon()
+void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 {
-	if (!CannonClass)
+	if (!newCannonClass)
 	{
 		return;
 	}
@@ -121,8 +125,21 @@ void ATankPawn::SetupCannon()
 	params.Instigator = this;
 	params.Owner = this;
 
-	Cannon = GetWorld()->SpawnActor<ACannon>(CannonClass, params);
+	Cannon = GetWorld()->SpawnActor<ACannon>(newCannonClass, params);
 
-	Cannon->AttachToComponent(TurretMesh, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
 }
+
+void ATankPawn::WeaponChange()
+{
+	if (CannonClass)
+	{
+		SetupCannon(SecondCannonClass);
+	}
+	else
+	{
+		SetupCannon(CannonClass);
+	}
+}
+
 

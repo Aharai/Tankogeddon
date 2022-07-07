@@ -23,6 +23,10 @@ public:
 
 	void SetupAmmo(int32 BoxAmmo);
 
+	bool IsReadyToFire() { return bCanFire; };
+
+	void WeaponChange();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	class UStaticMeshComponent* CannonMesh;
@@ -47,6 +51,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
 	float FireRange = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	float DamageValue = 5.0f;
 
 	FTimerHandle ReloadTimer;
 	FTimerHandle BurstTimer;

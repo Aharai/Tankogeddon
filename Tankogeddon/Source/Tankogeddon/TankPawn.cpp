@@ -3,11 +3,13 @@
 
 #include "TankPawn.h"
 #include "Components\StaticMeshComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
+#include "GameFramework\SpringArmComponent.h"
+#include "Camera\CameraComponent.h"
 #include "TankController.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "Kismet\KismetMathLibrary.h"
 #include "Cannon.h"
+#include "Components\ArrowComponent.h"
+#include "HealthComponent.h"
 
 
 ATankPawn::ATankPawn()
@@ -33,6 +35,10 @@ ATankPawn::ATankPawn()
 
 	Camera = CreateAbstractDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->OnDie.AddUObject(this, &ATankPawn::Die);
+	HealthComponent->OnHealthChanged.AddUObject(this, &ATankPawn::DamageTaked);
 }
 
 void ATankPawn::MoveForward(float Value)
@@ -130,15 +136,26 @@ void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
 }
 
+void ATankPawn::TakeDamage(FDamageData DamageData)
+{
+	HealthComponent->TakeDamage(DamageData);
+}
+
+void ATankPawn::Die()
+{
+	Destroy();
+}
+
+void ATankPawn::DamageTaked(float DamageValue)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Tank %s take Damage: %f,  Health: %f"), *GetName(), DamageValue, HealthComponent->GetHealth());
+}
+
 void ATankPawn::WeaponChange()
 {
-	if (CannonClass)
+	if (Cannon)
 	{
-		SetupCannon(SecondCannonClass);
-	}
-	else
-	{
-		SetupCannon(CannonClass);
+		Cannon->WeaponChange();
 	}
 }
 

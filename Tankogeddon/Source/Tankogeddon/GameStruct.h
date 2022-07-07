@@ -10,7 +10,23 @@ UENUM(BlueprintType)
 enum class ECannonType : uint8
 {
 	FireProjectile = 0 UMETA(DisplayName = "Use Projectile"),
-	FireTrace = 1 UMETA(DisplayName = "Use Trace")
+	FireTrace = 1 UMETA(DisplayName = "Use Trace"),
+	FireArrow = 2 UMETA(DisplayName = "Use Arrow")
+};
+
+USTRUCT()
+struct FDamageData
+{
+	GENERATED_BODY()
+
+		UPROPERTY()
+		float DamageValue;
+
+	UPROPERTY()
+		AActor* Instigator;
+
+	UPROPERTY()
+		AActor* DamageMaker;
 };
 
 UCLASS()

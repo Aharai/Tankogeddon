@@ -4,10 +4,14 @@
 #include "Cannon.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Components/SceneComponent.h"
 #include "TimerManager.h"
 #include "Engine/Engine.h"
 #include "Projectile.h"
 #include "DrawDebugHelpers.h"
+#include "Turret.h"
+#include "HealthComponent.h"
+#include "GameStruct.h"
 
 ACannon::ACannon()
 {
@@ -60,12 +64,29 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), StartTrace, hitResult.Location, FColor::Red, false, 0.5f, 0, 10);
 			if (hitResult.GetActor())
 			{
-				hitResult.GetActor()->Destroy();
+				AActor* owner = hitResult.GetActor();
+				AActor* ownerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
+
+					IDamageTaker* damageTakerActor = Cast<IDamageTaker>(hitResult.GetActor());
+					if (damageTakerActor)
+					{
+						FDamageData damageData;
+						damageData.DamageValue = DamageValue;
+						damageData.Instigator = owner;
+						damageData.DamageMaker = this;
+
+						damageTakerActor->TakeDamage(damageData);
+					}
+					else
+					{
+						hitResult.GetActor()->Destroy();
+					}
+
 			}
 		}
 		else
 		{
-			DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Purple, false, 0.5f, 0, 10);
+			DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 0.5f, 0, 10);
 		}
 
 
@@ -98,6 +119,23 @@ void ACannon::Reload()
 void ACannon::SetupAmmo(int32 BoxAmmo)
 {
 	Ammo += BoxAmmo;
+}
+
+void ACannon::WeaponChange()
+{
+	switch (CannonType)
+	{
+	case ECannonType::FireProjectile:
+		CannonType = ECannonType::FireArrow;
+		break;
+	case ECannonType::FireTrace:
+		break;
+	case ECannonType::FireArrow:
+		CannonType = ECannonType::FireProjectile;
+		break;
+	default:
+		break;
+	}
 }
 
 void ACannon::Burst()

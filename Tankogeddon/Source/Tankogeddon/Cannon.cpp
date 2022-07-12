@@ -2,49 +2,64 @@
 
 
 #include "Cannon.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/ArrowComponent.h"
-#include "Components/SceneComponent.h"
-#include "TimerManager.h"
-#include "Engine/Engine.h"
+#include "Components\StaticMeshComponent.h"
+#include "Components\ArrowComponent.h"
+#include "Components\SceneComponent.h"
 #include "Projectile.h"
 #include "DrawDebugHelpers.h"
-#include "Turret.h"
-#include "HealthComponent.h"
-#include "GameStruct.h"
+#include "ProjectilePool.h"
+#include "Particles\ParticleSystemComponent.h"
+#include "Components\AudioComponent.h"
 
+// Sets default values
 ACannon::ACannon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	USceneComponent* CannonSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	USceneComponent* CannonSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("CannonRoot"));
 	RootComponent = CannonSceneComponent;
 
 	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
-	CannonMesh->SetupAttachment(RootComponent);
+	CannonMesh->SetupAttachment(CannonSceneComponent);
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ProjectileSpawnPoint"));
-	ProjectileSpawnPoint->SetupAttachment(CannonMesh);
+	ProjectileSpawnPoint->SetupAttachment(CannonSceneComponent);
+
+	ShootEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ShootEffect"));
+	ShootEffect->SetupAttachment(ProjectileSpawnPoint);
+
+	AudioEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioEffect"));
 }
 
 void ACannon::Fire()
 {
-	if (!bCanFire || Ammo == 0)
+	if (!bCanFire || Shells == 0)
 	{
 		return;
 	}
 
 	bCanFire = false;
-	Ammo--;
+	Shells--;
+
+	ShootEffect->ActivateSystem();
+	AudioEffect->Play();
 
 	if (CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Fire projectile")));
 
-		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
-		if (projectile)
+		if (ProjectilePool)
 		{
-			projectile->Start();
+			ProjectilePool->GetProjectile(ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+		}
+		else
+		{
+			AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+			if (projectile)
+			{
+				projectile->SetOwner(this);
+				projectile->Start();
+			}
 		}
 	}
 	else
@@ -64,50 +79,30 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), StartTrace, hitResult.Location, FColor::Red, false, 0.5f, 0, 10);
 			if (hitResult.GetActor())
 			{
-				AActor* owner = hitResult.GetActor();
-				AActor* ownerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
-
-					IDamageTaker* damageTakerActor = Cast<IDamageTaker>(hitResult.GetActor());
-					if (damageTakerActor)
-					{
-						FDamageData damageData;
-						damageData.DamageValue = DamageValue;
-						damageData.Instigator = owner;
-						damageData.DamageMaker = this;
-
-						damageTakerActor->TakeDamage(damageData);
-					}
-					else
-					{
-						hitResult.GetActor()->Destroy();
-					}
-
+				hitResult.GetActor()->Destroy();
 			}
 		}
 		else
 		{
-			DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 0.5f, 0, 10);
+			DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Purple, false, 0.5f, 0, 10);
 		}
 
 
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Ammo is: %d"), Ammo));
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Shells is: %d"), Shells));
 
 	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, ReloadTime, false);
 }
 
 void ACannon::FireSpecial()
 {
-	if (!bCanFire)
+	if (!bCanFire || Shells == 0)
 	{
 		return;
 	}
 
 	bCanFire = false;
-
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, ReloadTime, false);
-
 	Burst();
 }
 
@@ -118,24 +113,20 @@ void ACannon::Reload()
 
 void ACannon::SetupAmmo(int32 BoxAmmo)
 {
-	Ammo += BoxAmmo;
+	Shells += BoxAmmo;
 }
 
-void ACannon::WeaponChange()
+void ACannon::CreateProjectilePool()
 {
-	switch (CannonType)
-	{
-	case ECannonType::FireProjectile:
-		CannonType = ECannonType::FireArrow;
-		break;
-	case ECannonType::FireTrace:
-		break;
-	case ECannonType::FireArrow:
-		CannonType = ECannonType::FireProjectile;
-		break;
-	default:
-		break;
-	}
+	if (ProjectilePoolClass)
+		ProjectilePool = GetWorld()->SpawnActor<AProjectilePool>(ProjectilePoolClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+}
+
+void ACannon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CreateProjectilePool();
 }
 
 void ACannon::Burst()
@@ -145,8 +136,8 @@ void ACannon::Burst()
 		GetWorld()->GetTimerManager().ClearTimer(BurstTimer);
 		bCanFire = true;
 		CurrentBurts = 0;
-		Ammo--;
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Shells is: %d"), Ammo));
+		Shells--;
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Shells is: %d"), Shells));
 		return;
 	}
 
@@ -164,4 +155,3 @@ void ACannon::Burst()
 
 	GetWorld()->GetTimerManager().SetTimer(BurstTimer, this, &ACannon::Burst, BurstInterval, false);
 }
-

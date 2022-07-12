@@ -2,6 +2,7 @@
 
 
 #include "Turret.h"
+#include "TankPawn.h"
 #include "Components\StaticMeshComponent.h"
 #include "Components\ArrowComponent.h"
 #include "Components\BoxComponent.h"
@@ -10,23 +11,12 @@
 #include "UObject\UObjectGlobals.h"
 #include "Engine\StaticMesh.h"
 #include "HealthComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 ATurret::ATurret()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	RootComponent = BodyMesh;
-
-	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
-	TurretMesh->SetupAttachment(BodyMesh);
-
-	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CannonSetupPoint"));
-	CannonSetupPoint->SetupAttachment(TurretMesh);
-
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
-	BoxComponent->SetupAttachment(BodyMesh);
 
 	UStaticMesh* BodyMeshTemp = LoadObject<UStaticMesh>(this, *BodyMeshPath);
 	if (BodyMeshTemp)
@@ -35,23 +25,12 @@ ATurret::ATurret()
 	UStaticMesh* TurretMeshTemp = LoadObject<UStaticMesh>(this, *TurretMeshPath);
 	if (TurretMeshTemp)
 		TurretMesh->SetStaticMesh(TurretMeshTemp);
-
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	HealthComponent->OnDie.AddUObject(this, &ATurret::Die);
-	HealthComponent->OnHealthChanged.AddUObject(this, &ATurret::DamageTaked);
-
 }
 
-void ATurret::TakeDamage(FDamageData DamageData)
-{
-	HealthComponent->TakeDamage(DamageData);
-}
 
 void ATurret::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetupCannon();
 
 	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
@@ -59,22 +38,16 @@ void ATurret::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TargetingTimer, this, &ATurret::Targeting, TargetingRate, true, TargetingRate);
 }
 
-void ATurret::Destoryed()
-{
-	if (Cannon)
-		Cannon->Destroy();
-}
-
 void ATurret::Targeting()
 {
 	if (IsPlayerInRange())
 	{
 		RotateToPlayer();
-	}
 
-	if (CanFire() && Cannon && Cannon->IsReadyToFire())
-	{
-		Fire();
+		if (CanFire() && Cannon && Cannon->IsReadyToFire())
+		{
+			Fire();
+		}
 	}
 }
 
@@ -94,6 +67,7 @@ bool ATurret::IsPlayerInRange()
 
 bool ATurret::CanFire()
 {
+
 	FVector targetingDir = TurretMesh->GetForwardVector();
 	FVector dirToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
 	dirToPlayer.Normalize();
@@ -102,32 +76,31 @@ bool ATurret::CanFire()
 	return aimAngle <= Accurency;
 }
 
-void ATurret::Fire()
-{
-	if (Cannon)
-		Cannon->Fire();
-}
+//Не могу сделать т.к данный метод из методички не работает...
 
-void ATurret::SetupCannon()
-{
-	if (!CannonClass)
-	{
-		return;
-	}
-
-	FActorSpawnParameters params;
-	params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(CannonClass, params);
-	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-}
-
-void ATurret::Die()
-{
-	Destroy();
-}
-
-void ATurret::DamageTaked(float DamageValue)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Turret %s take Damage: %f,  Health: %f"), *GetName(), DamageValue, HealthComponent->GetHealth());
-}
+//bool ATurret::IsPlayerSeen()
+//{
+//	FVector playerPos = PlayerPawn->GetActorLocation();
+//	FVector eyesPos = TankPawn->GetEyesPosition();
+//
+//	FHitResult hitResult;
+//
+//	FCollisionQueryParams traceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
+//
+//	traceParams.bTraceComplex = true;
+//	traceParams.AddIgnoredActor(TankPawn);
+//	traceParams.bReturnPhysicalMaterial = false;
+//
+//	if (GetWorld()->LineTraceSingleByChannel(hitResult, eyesPos, playerPos, ECollisionChannel::ECC_Visibility, traceParams))
+//	{
+//		if (hitResult.GetActor())
+//		{
+//			DrawDebugLine(GetWorld(), eyesPos, hitResult.Location, FColor::Cyan, false, 0.5f, 0, 10);
+//			return hitResult.GetActor() == PlayerPawn;
+//		}
+//	}
+//
+//	DrawDebugLine(GetWorld(), eyesPos, playerPos, FColor::Cyan, false, 0.5f, 0, 10);
+//	return false;
+//}
 

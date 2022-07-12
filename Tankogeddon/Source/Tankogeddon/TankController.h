@@ -6,6 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "TankController.generated.h"
 
+/**
+ *
+ */
 UCLASS()
 class TANKOGEDDON_API ATankController : public APlayerController
 {
@@ -16,32 +19,31 @@ public:
 	virtual void SetupInputComponent() override;
 
 	UPROPERTY()
-	class ATankPawn* TankPawn;
+		class ATankPawn* TankPawn;
 
 	UPROPERTY()
-	FVector MousePos;
+		FVector MousePos = FVector::Zero();
 
 	FVector GetMousePosition() { return MousePos; }
 
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetPawn(APawn* InPawn) override;
-
 protected:
 	UFUNCTION()
-	void MoveForward(float Value);
-	UFUNCTION()
-	void MoveRight(float Value);
+		void MoveForward(float Value);
 
 	UFUNCTION()
-	void RotateRight(float Value);
+		void MoveRight(float Value);
 
 	UFUNCTION()
-	void Fire();
+		void RotateRight(float Value);
 
 	UFUNCTION()
-	void FireSpecial();
+		void Fire();
 
 	UFUNCTION()
-	void WeaponChange();
+		void FireSpecial();
+
+	void ChangeWeapon();
 };

@@ -46,4 +46,3 @@ void UHealthComponent::BeginPlay()
 
 	CurrentHealth = MaxHealth;
 }
-

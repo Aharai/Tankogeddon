@@ -7,59 +7,70 @@
 #include "GameStruct.h"
 #include "Cannon.generated.h"
 
-
-class UArrowComponent;
+class AProjectilePool;
 UCLASS()
 class TANKOGEDDON_API ACannon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	ACannon();
 
 	void Fire();
 	void FireSpecial();
-	void Reload();
-
-	void SetupAmmo(int32 BoxAmmo);
 
 	bool IsReadyToFire() { return bCanFire; };
 
-	void WeaponChange();
+	void Reload();
+
+	void CreateProjectilePool();
+
+	void SetupAmmo(int32 BoxAmmo);
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	class UStaticMeshComponent* CannonMesh;
+	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	class UArrowComponent* ProjectileSpawnPoint;
+		class UStaticMeshComponent* CannonMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+		class UArrowComponent* ProjectileSpawnPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	ECannonType CannonType;
+		ECannonType CannonType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	float ReloadTime = 1.0f;
+		float ReloadTime = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
-	int32 Ammo = 10;
+		int32 Shells = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
-	int32 BurstSize = 3;
+		int32 BurstSize = 5;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
-	float BurstInterval = 0.1f;
+		float BurstInterval = 0.1f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
-	float FireRange = 1000.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
-	float DamageValue = 5.0f;
+		float FireRange = 100.0f;
 
 	FTimerHandle ReloadTimer;
 	FTimerHandle BurstTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
-	TSubclassOf<class AProjectile> ProjectileClass;
+		TSubclassOf<class AProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+		TSubclassOf<AProjectilePool> ProjectilePoolClass;
+
+	UPROPERTY()
+		AProjectilePool* ProjectilePool;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+		class UParticleSystemComponent* ShootEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+		class UAudioComponent* AudioEffect;
 
 private:
 	bool bCanFire = true;

@@ -6,12 +6,13 @@
 #include "GameFramework/Pawn.h"
 #include "DamageTaker.h"
 #include "GameStruct.h"
+#include "Scorable.h"
 #include "MachinePawn.generated.h"
 
 class UStaticMeshComponent;
 class ACannon;
 UCLASS()
-class TANKOGEDDON_API AMachinePawn : public APawn, public IDamageTaker
+class TANKOGEDDON_API AMachinePawn : public APawn, public IDamageTaker, public IScorable
 {
 	GENERATED_BODY()
 
@@ -24,6 +25,17 @@ public:
 	void Fire();
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+
+	//Scorable
+	virtual float GetPoints() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scorable")
+		float ScoreValue = 0;
+
+	UFUNCTION()
+		void ShowScore(float Value);
+
+	float Score = 0.0f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -51,8 +63,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 		class UParticleSystemComponent* DieEffect;
-
-	FTimerHandle DieTimer;
 
 	UPROPERTY()
 		ACannon* Cannon;

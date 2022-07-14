@@ -13,6 +13,8 @@ class TANKOGEDDON_API ACannon : public AActor
 {
 	GENERATED_BODY()
 
+		DECLARE_EVENT_OneParam(ACannon, FChangeScore, float);
+
 public:
 	ACannon();
 
@@ -26,6 +28,14 @@ public:
 	void CreateProjectilePool();
 
 	void SetupAmmo(int32 BoxAmmo);
+
+	//Score
+	float Score = 0.0f;
+
+	UFUNCTION()
+		void AddScore(float ScoreValue);
+
+	FChangeScore ScoreChanged;
 
 protected:
 	virtual void BeginPlay() override;

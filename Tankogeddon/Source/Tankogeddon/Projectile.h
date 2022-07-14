@@ -11,12 +11,16 @@ class TANKOGEDDON_API AProjectile : public AActor
 {
 	GENERATED_BODY()
 
+	DECLARE_EVENT_OneParam(AProjectile, FOnKill, float);
+
 public:
 	AProjectile();
 
 	void Start();
 
 	void Deactivate();
+
+	FOnKill OnKilled;
 
 	bool bIsActivation = false;
 

@@ -10,6 +10,7 @@
 #include "Cannon.h"
 #include "Components\ArrowComponent.h"
 #include "HealthComponent.h"
+#include "Engine\TargetPoint.h"
 
 
 ATankPawn::ATankPawn()
@@ -24,8 +25,10 @@ ATankPawn::ATankPawn()
 	SpringArm->bInheritRoll = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-
 	Camera->SetupAttachment(SpringArm);
+
+
+
 }
 
 void ATankPawn::MoveForward(float Value)
@@ -97,6 +100,21 @@ void ATankPawn::Tick(float DeltaSeconds)
 
 }
 
+TArray<FVector> ATankPawn::GetPatrollingPoints()
+{
+	TArray<FVector> points;
+	for (ATargetPoint* point : PatrollingPoints)
+	{
+		points.Add(point->GetActorLocation());
+	}
+	return points;
+}
+
+void ATankPawn::SetPatrollingPoints(TArray<ATargetPoint*> NewPatrollingPoints)
+{
+	PatrollingPoints = NewPatrollingPoints;
+}
+
 FVector ATankPawn::GetTurretForwardVector()
 {
 	return TurretMesh->GetForwardVector();
@@ -122,7 +140,7 @@ void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 0.0f));
+	SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 30.0f));
 
 	TankController = Cast<ATankController>(GetController());
 

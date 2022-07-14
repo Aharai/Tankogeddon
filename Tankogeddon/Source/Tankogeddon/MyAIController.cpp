@@ -9,22 +9,18 @@ void AMyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TankPawn = Cast<ATankPawn>(GetPawn());
-	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-
-	FVector pawnLocation = TankPawn->GetActorLocation();
-	MovementAccurency = TankPawn->GetAccurency();
-	TArray<FVector> points = TankPawn->GetPatrollingPoints();
-	for (FVector point : points)
-	{
-		PattrollingPath.Add(point + pawnLocation);
-	}
-	CurrentPattrolingIndex = 0;
+	Initialize();
 }
 
 void AMyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (!TankPawn)
+		Initialize();
+
+	if (!TankPawn)
+		return;
 
 	TankPawn->MoveForward(1);
 
@@ -136,4 +132,22 @@ bool AMyAIController::IsPlayerSeen()
 	DrawDebugLine(GetWorld(), eyesPos, playerPos, FColor::Cyan, false, 0.5f, 0, 10);
 	return false;
 
+}
+
+void AMyAIController::Initialize()
+{
+	TankPawn = Cast<ATankPawn>(GetPawn());
+
+	if (!TankPawn)
+		return;
+	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	FVector pawnLocation = TankPawn->GetActorLocation();
+	MovementAccurency = TankPawn->GetAccurency();
+	TArray<FVector> points = TankPawn->GetPatrollingPoints();
+	for (FVector point : points)
+	{
+		PattrollingPath.Add(point + pawnLocation);
+	}
+	CurrentPattrolingIndex = 0;
 }

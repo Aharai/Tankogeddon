@@ -2,7 +2,6 @@
 
 
 #include "Turret.h"
-#include "TankPawn.h"
 #include "Components\StaticMeshComponent.h"
 #include "Components\ArrowComponent.h"
 #include "Components\BoxComponent.h"
@@ -11,7 +10,6 @@
 #include "UObject\UObjectGlobals.h"
 #include "Engine\StaticMesh.h"
 #include "HealthComponent.h"
-#include "DrawDebugHelpers.h"
 
 
 ATurret::ATurret()
@@ -25,8 +23,8 @@ ATurret::ATurret()
 	UStaticMesh* TurretMeshTemp = LoadObject<UStaticMesh>(this, *TurretMeshPath);
 	if (TurretMeshTemp)
 		TurretMesh->SetStaticMesh(TurretMeshTemp);
-}
 
+}
 
 void ATurret::BeginPlay()
 {
@@ -67,7 +65,6 @@ bool ATurret::IsPlayerInRange()
 
 bool ATurret::CanFire()
 {
-
 	FVector targetingDir = TurretMesh->GetForwardVector();
 	FVector dirToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
 	dirToPlayer.Normalize();

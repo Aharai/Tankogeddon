@@ -67,9 +67,21 @@ void AMachinePawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 
 	Cannon = GetWorld()->SpawnActor<ACannon>(EquippedCannonClass, params);
 	Cannon->SetOwner(this);
+	Cannon->ScoreChanged.AddUObject(this, &AMachinePawn::ShowScore);
 
 	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
 
+}
+
+float AMachinePawn::GetPoints()
+{
+	return ScoreValue;
+}
+
+void AMachinePawn::ShowScore(float Value)
+{
+	Score += Value;
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Score: %f"), Score));
 }
 
 void AMachinePawn::BeginPlay()

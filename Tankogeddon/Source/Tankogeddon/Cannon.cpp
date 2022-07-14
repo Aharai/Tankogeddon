@@ -57,6 +57,7 @@ void ACannon::Fire()
 			AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
 			if (projectile)
 			{
+				projectile->OnKilled.AddUObject(this, &ACannon::AddScore);
 				projectile->SetOwner(this);
 				projectile->Start();
 			}
@@ -120,6 +121,14 @@ void ACannon::CreateProjectilePool()
 {
 	if (ProjectilePoolClass)
 		ProjectilePool = GetWorld()->SpawnActor<AProjectilePool>(ProjectilePoolClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+}
+
+void ACannon::AddScore(float ScoreValue)
+{
+	if (ScoreChanged.IsBound())
+	{
+		ScoreChanged.Broadcast(ScoreValue);
+	}
 }
 
 void ACannon::BeginPlay()

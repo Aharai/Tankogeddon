@@ -11,6 +11,7 @@
 
 class UStaticMeshComponent;
 class ACannon;
+class ATargetPoint;
 UCLASS()
 class TANKOGEDDON_API ATankPawn : public AMachinePawn
 {
@@ -30,7 +31,9 @@ public:
 
 	//AI
 	UFUNCTION()
-		TArray<FVector> GetPatrollingPoints() { return PattrollingPoints; }
+		TArray<FVector> GetPatrollingPoints();
+
+	void SetPatrollingPoints(TArray<ATargetPoint*> NewPatrollingPoints);
 
 	UFUNCTION()
 		float GetAccurency() { return MovementAccurency; }
@@ -73,7 +76,7 @@ protected:
 
 	//AI components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Components", Meta = (MakeEditWidget = true))
-		TArray<FVector> PattrollingPoints;
+		TArray<ATargetPoint*> PatrollingPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Components")
 		float MovementAccurency = 30.0f;

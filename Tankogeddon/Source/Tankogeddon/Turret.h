@@ -22,15 +22,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void PostInitializeComponents() override;
+
 	void Targeting();
 	void RotateToPlayer();
 	bool IsPlayerInRange();
 	bool CanFire();
-
-	bool IsPlayerSeen();
-
-	UPROPERTY()
-		class ATankPawn* TankPawn;
 
 	UPROPERTY()
 		class APawn* PlayerPawn;

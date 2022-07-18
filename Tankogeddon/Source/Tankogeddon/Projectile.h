@@ -11,12 +11,12 @@ class TANKOGEDDON_API AProjectile : public AActor
 {
 	GENERATED_BODY()
 
-	DECLARE_EVENT_OneParam(AProjectile, FOnKill, float);
+		DECLARE_EVENT_OneParam(AProjectile, FOnKill, float);
 
 public:
 	AProjectile();
 
-	void Start();
+	virtual void Start();
 
 	void Deactivate();
 
@@ -26,27 +26,35 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-		class UStaticMeshComponent* ProjectileMesh;
+	class UStaticMeshComponent* ProjectileMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-		float MoveSpeed = 100.0f;
+	float MoveSpeed = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-		float MoveRate = 0.01f;
+	float MoveRate = 0.01f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-		float Damage = 10.0f;
+	float Damage = 10.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-		float DeactivateTime = 5.0f;
+	float DeactivateTime = 5.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	float PushForce = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement params")
+	float ExplodeRadius = 50.0f;
 
 	FTimerHandle MoveTimer;
 	FTimerHandle DeactivateTimer;
 
-	void Move();
+	virtual void Move();
+
+	void Explode();
 
 	UFUNCTION()
-		void OnMeshOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnMeshOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+	class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 };

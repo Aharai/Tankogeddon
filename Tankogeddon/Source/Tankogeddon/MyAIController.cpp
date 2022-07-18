@@ -34,7 +34,9 @@ float AMyAIController::GetRotationValue()
 {
 	FVector currentPoint = PattrollingPath[CurrentPattrolingIndex];
 	FVector pawnLocation = TankPawn->GetActorLocation();
-	if (FVector::Distance(currentPoint, pawnLocation) <= MovementAccurency)
+	float Dist = FVector::Distance(currentPoint, pawnLocation);
+	//UE_LOG(LogTemp, Warning, TEXT("Dist is %f"), Dist);
+	if (Dist <= MovementAccurency)
 	{
 		CurrentPattrolingIndex++;
 		if (CurrentPattrolingIndex >= PattrollingPath.Num())
@@ -52,16 +54,15 @@ float AMyAIController::GetRotationValue()
 
 	float forwardAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(forwardDirection, moveDirection)));
 	float RightAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(rightDirection, moveDirection)));
+	//UE_LOG(LogTemp, Warning, TEXT("forward Angle: %f, RightAngle: %f"), forwardAngle, RightAngle);
 
-	float RotationValue = 0;
-	if (forwardAngle > 5)
-	{
-		RotationValue = 1;
-	}
+	float RotationValue = 1;
+
 	if (RightAngle > 90)
 	{
 		RotationValue = -RotationValue;
 	}
+
 	return RotationValue;
 }
 
@@ -86,12 +87,10 @@ bool AMyAIController::IsPlayerRange()
 
 bool AMyAIController::CanFire()
 {
-	//Не работает метод IsPlayerSeen(), все красиво рисуется, а танк не стреляет
-
-	//if (!IsPlayerSeen())
-	//{
-	//	return false;
-	//}
+	if (!IsPlayerSeen())
+	{
+		return false;
+	}
 	FVector targetingDir = TankPawn->GetTurretForwardVector();
 	FVector dirToPlayer = PlayerPawn->GetActorLocation() - TankPawn->GetActorLocation();
 	dirToPlayer.Normalize();
@@ -108,19 +107,18 @@ void AMyAIController::Fire()
 
 bool AMyAIController::IsPlayerSeen()
 {
+
 	FVector playerPos = PlayerPawn->GetActorLocation();
 	FVector eyesPos = TankPawn->GetEyesPosition();
 
 	FHitResult hitResult;
 
 	FCollisionQueryParams traceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
-
 	traceParams.bTraceComplex = true;
 	traceParams.AddIgnoredActor(TankPawn);
 	traceParams.bReturnPhysicalMaterial = false;
 
-	if (GetWorld()->LineTraceSingleByChannel(hitResult, eyesPos, playerPos,
-		ECollisionChannel::ECC_Visibility, traceParams))
+	if (GetWorld()->LineTraceSingleByChannel(hitResult, eyesPos, playerPos, ECollisionChannel::ECC_Visibility, traceParams))
 	{
 		if (hitResult.GetActor())
 		{
@@ -128,10 +126,8 @@ bool AMyAIController::IsPlayerSeen()
 			return hitResult.GetActor() == PlayerPawn;
 		}
 	}
-
-	DrawDebugLine(GetWorld(), eyesPos, playerPos, FColor::Cyan, false, 0.5f, 0, 10);
+	DrawDebugLine(GetWorld(), eyesPos, playerPos, FColor::Purple, false, 0.5f, 0, 10);
 	return false;
-
 }
 
 void AMyAIController::Initialize()
@@ -147,7 +143,7 @@ void AMyAIController::Initialize()
 	TArray<FVector> points = TankPawn->GetPatrollingPoints();
 	for (FVector point : points)
 	{
-		PattrollingPath.Add(point + pawnLocation);
+		PattrollingPath.Add(point);
 	}
 	CurrentPattrolingIndex = 0;
 }
